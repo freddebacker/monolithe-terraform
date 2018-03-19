@@ -1,0 +1,3 @@
+recursive-include monolitheterraform/templates *
+recursive-include monolitheterraform/vanilla *
+recursive-include monolitheterraform/writers *
