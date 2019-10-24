@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='monolitheterraform',
-      version='0.1',
+      version='0.2',
       description='Terraform generator for monolithe',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests', '.git', '.gitignore', 'README.md']),
       include_package_data=True,

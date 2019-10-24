@@ -43,7 +43,7 @@ class APIVersionWriter(TemplateFileWriter):
         """ Initializes a _PythonSDKAPIVersionFileWriter
 
         """
-        super(APIVersionWriter, self).__init__(package="monolithe.generators.lang.terraform")
+        super(APIVersionWriter, self).__init__(package="monolitheterraform")
 
         self.api_version = api_info["version"]
         self.api_root = api_info["root"]
@@ -120,8 +120,8 @@ class APIVersionWriter(TemplateFileWriter):
             for related_child_api in remote_spec.child_apis:
                 if related_child_api.rest_name == specification.rest_name and related_child_api.allows_create:
                     parent_apis.append({"remote_spec": remote_spec, "actions": self._get_actions(related_child_api), "relationship": related_child_api.relationship})
-        if specification.rest_name == 'addressrange' :
-            print(parent_apis[0]['remote_spec'].instance_name)
+        #if specification.rest_name == 'addressrange' :
+        #    print(parent_apis[0]['remote_spec'].instance_name)
         self.write(destination=self.output_directory, filename=filename, template_name="resource.go.tpl",
                    specification=specification,
                    specification_set=specification_set,

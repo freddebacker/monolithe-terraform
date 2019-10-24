@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/hashicorp/terraform/plugin"
-	"github.com/terraform-providers/terraform-provider-nuagenetworks/nuagenetworks"
+    "github.com/hashicorp/terraform-plugin-sdk/plugin"
+	"terraform-provider-nuagenetworks/nuagenetworks"
 )
 
 func main() {

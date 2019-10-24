@@ -46,30 +46,3 @@ def get_type_name(type_name, sub_type=None):
         return "float64"
     else:
         return "interface{}"
-
-def _string_clean(string):
-    """
-    """
-    rep = {
-        "IPID": "IpID",
-        "VCenter": "Vcenter",
-        "vCenter": "Vcenter",
-        "VPort": "Vport",
-        "IPv6": "Ipv6",
-        "IPv4": "Ipv4"
-    }
-
-    rep = dict((re.escape(k), v) for k, v in rep.items())
-    pattern = re.compile("|".join(list(rep.keys())))
-
-    return pattern.sub(lambda m: rep[re.escape(m.group(0))], string)
-
-def get_idiomatic_name(name):
-    """
-    """
-    first_cap_re = re.compile("(.)([A-Z](?!s([A-Z])*)[a-z]+)")
-    all_cap_re = re.compile("([a-z0-9])([A-Z])")
-
-    s1 = first_cap_re.sub(r"\1_\2", _string_clean(name))
-
-    return all_cap_re.sub(r"\1_\2", s1).lower()
