@@ -91,15 +91,15 @@ func resource{{ specification.entity_name }}() *schema.Resource {
             {%- endfor %}
             {%- for api in parent_apis %}
             {%- if api.actions.create and ( api.relationship == "child" or api.relationship == "root" or api.relationship == "alias" ) %}
-            {%- if api.remote_spec.instance_name != "me" %}
+            {%- if api.remote_spec.instance_name|lower != "me" %}
             "parent_{{ api.remote_spec.instance_name|lower }}": &schema.Schema{
                 Type:     schema.TypeString,
                 {%- if parent_apis | length == 1 %}
                 Required: true,
                 {%- else %}
                 Optional: true,
-                {%- if (parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | map(attribute='remote_spec.instance_name') | reject('equalto', api.remote_spec.instance_name) | reject('equalto', 'me')| list | length) >= 1 %}
-                ConflictsWith: []string{% raw %}{{% endraw %}"parent_{{ parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | map(attribute='remote_spec.instance_name') | reject('equalto', api.remote_spec.instance_name) | reject('equalto', 'me')|join('", "parent_')|lower }}{% raw %}"}{% endraw %},
+                {%- if (parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | map(attribute='remote_spec.instance_name') | map('lower') | reject('equalto', api.remote_spec.instance_name) | reject('equalto', 'me')| list | length) >= 1 %}
+                ConflictsWith: []string{% raw %}{{% endraw %}"parent_{{ parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | map(attribute='remote_spec.instance_name') | map('lower') | reject('equalto', api.remote_spec.instance_name) | reject('equalto', 'me')|join('", "parent_') }}{% raw %}"}{% endraw %},
                 {%- endif %}
                 {%- endif %}
             },
@@ -131,7 +131,7 @@ func resource{{specification.entity_name}}Create(d *schema.ResourceData, m inter
     {%- endif %}
     {%- endfor %}
     {%- if parent_apis | length == 1 %}
-        {%- if parent_apis[0].remote_spec.instance_name != "me" and parent_apis[0].actions.create %}
+        {%- if parent_apis[0].remote_spec.instance_name|lower != "me" and parent_apis[0].actions.create %}
     parent := &vspk.{{ parent_apis[0].remote_spec.entity_name }}{ID: d.Get("parent_{{ parent_apis[0].remote_spec.instance_name|lower }}").(string)}
     err := parent.Create{{specification.entity_name}}(o)
     if err != nil {

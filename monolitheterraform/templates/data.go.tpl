@@ -63,15 +63,15 @@ func dataSource{{ specification.entity_name }}() *schema.Resource {
             {%- endfor %}
             {%- for api in parent_apis %}
             {%- if api.actions.get %}
-            {%- if api.remote_spec.instance_name != "me" %}
+            {%- if api.remote_spec.instance_name|lower != "me" %}
             "parent_{{ api.remote_spec.instance_name|lower }}": &schema.Schema{
                 Type:     schema.TypeString,
                 {%- if parent_apis | length == 1 %}
                 Required: true,
                 {%- else %}
                 Optional: true,
-                {%- if (parent_apis | selectattr('actions.get') | map(attribute='remote_spec.instance_name') | reject('equalto', api.remote_spec.instance_name) | reject('equalto', 'me')| list | length) >= 1 %}
-                ConflictsWith: []string{% raw %}{{% endraw %}"parent_{{ parent_apis | selectattr('actions.get') | map(attribute='remote_spec.instance_name') | reject('equalto', api.remote_spec.instance_name) | reject('equalto', 'me')|join('", "parent_')|lower }}{% raw %}"}{% endraw %},
+                {%- if (parent_apis | selectattr('actions.get') | map(attribute='remote_spec.instance_name') | map('lower') | reject('equalto', api.remote_spec.instance_name) | reject('equalto', 'me')| list | length) >= 1 %}
+                ConflictsWith: []string{% raw %}{{% endraw %}"parent_{{ parent_apis | selectattr('actions.get') | map(attribute='remote_spec.instance_name') | map('lower') | reject('equalto', api.remote_spec.instance_name) | reject('equalto', 'me')|join('", "parent_') }}{% raw %}"}{% endraw %},
                 {%- endif %}
                 {%- endif %}
             },
@@ -105,7 +105,7 @@ func dataSource{{specification.entity_name}}Read(d *schema.ResourceData, m inter
     }
 
     {%- if parent_apis | length == 1 %}
-        {%- if parent_apis[0].remote_spec.instance_name != "me" and parent_apis[0].actions.get %}
+        {%- if parent_apis[0].remote_spec.instance_name|lower != "me" and parent_apis[0].actions.get %}
     parent := &vspk.{{ parent_apis[0].remote_spec.entity_name }}{ID: d.Get("parent_{{ parent_apis[0].remote_spec.instance_name|lower }}").(string)}
     filtered{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}, err = parent.{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}(fetchFilter)
     if err != nil {
