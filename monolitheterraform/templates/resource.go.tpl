@@ -98,8 +98,8 @@ func resource{{ specification.entity_name }}() *schema.Resource {
                 Required: true,
                 {%- else %}
                 Optional: true,
-                {%- if (parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | map(attribute='remote_spec.instance_name') | map('lower') | reject('equalto', api.remote_spec.instance_name) | reject('equalto', 'me')| list | length) >= 1 %}
-                ConflictsWith: []string{% raw %}{{% endraw %}"parent_{{ parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | map(attribute='remote_spec.instance_name') | map('lower') | reject('equalto', api.remote_spec.instance_name) | reject('equalto', 'me')|join('", "parent_') }}{% raw %}"}{% endraw %},
+                {%- if (parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | map(attribute='remote_spec.instance_name') | reject('equalto', api.remote_spec.instance_name) | map('lower') | reject('equalto', 'me')| list | length) >= 1 %}
+                ConflictsWith: []string{% raw %}{{% endraw %}"parent_{{ parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | map(attribute='remote_spec.instance_name') | reject('equalto', api.remote_spec.instance_name) | map('lower') | reject('equalto', 'me')|join('", "parent_') }}{% raw %}"}{% endraw %},
                 {%- endif %}
                 {%- endif %}
             },
