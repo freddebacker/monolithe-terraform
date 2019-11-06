@@ -130,41 +130,49 @@ func resource{{specification.entity_name}}Create(d *schema.ResourceData, m inter
     }
     {%- endif %}
     {%- endfor %}
-    {%- if parent_apis | length == 1 %}
-        {%- if parent_apis[0].remote_spec.instance_name|lower != "me" and parent_apis[0].actions.create %}
+    {%- if (parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | list | length) == 1 %}
+        {%- if parent_apis[0].remote_spec.instance_name|lower != "me" %}
     parent := &vspk.{{ parent_apis[0].remote_spec.entity_name }}{ID: d.Get("parent_{{ parent_apis[0].remote_spec.instance_name|lower }}").(string)}
-    err := parent.Create{{specification.entity_name}}(o)
-    if err != nil {
-        return err
-    }
         {%- else %}
     parent := m.(*vspk.Me)
+        {%- endif %}
     err := parent.Create{{specification.entity_name}}(o)
     if err != nil {
         return err
     }
-        {%- endif %}
-    {%- else %}
-        {%- for api in parent_apis %}
-            {%- if api.actions.create and ( api.relationship == "child" or api.relationship == "root" or api.relationship == "alias" ) %}
+    {%- elif (parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | list | length) > 1 %}
+        {%- for api in parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | rejectattr('remote_spec.instance_name', 'in', ['me', 'Me', 'mE', 'ME']) %}
+            {%- if loop.first %}
     if attr, ok := d.GetOk("parent_{{ api.remote_spec.instance_name|lower }}"); ok {
+            {%- else %}
+    } else if attr, ok := d.GetOk("parent_{{ api.remote_spec.instance_name|lower }}"); ok {
+            {%- endif %}
         parent := &vspk.{{ api.remote_spec.entity_name }}{ID: attr.(string)}
         err := parent.Create{{specification.entity_name}}(o)
         if err != nil {
             return err
         }
+            {%- if loop.last %}
+                {%- if (parent_apis | map(attribute='remote_spec.instance_name') | map('lower') | select('equalto', 'me')| list | length) == 0 %}
     }
+                {%- else %}
+    } else {
+        parent := m.(*vspk.Me)
+        err := parent.Create{{specification.entity_name}}(o)
+        if err != nil {
+            return err
+        }
+    }
+                {%- endif %}
             {%- endif %}
         {%- endfor %}
     {%- endif %}
-    
-    
 
     d.SetId(o.Identifier())
 
 
-    {%- for api in specification.child_apis -%}
-        {% set child_specification = specification_set[api.rest_name] -%}
+    {%- for api in specification.child_apis %}
+        {%- set child_specification = specification_set[api.rest_name] -%}
         {%- if api.allows_update and api.relationship == "member" %}
     if attr, ok := d.GetOk("{{ child_specification.entity_name_plural|lower }}"); ok {
         o.Assign{{ child_specification.entity_name_plural }}(attr.(vspk.{{ child_specification.entity_name_plural }}List))
@@ -185,11 +193,11 @@ func resource{{specification.entity_name}}Read(d *schema.ResourceData, m interfa
         return nil
     }
 
-    {% for attribute in specification.attributes %}
+    {%- for attribute in specification.attributes %}
     {%- set field_name = attribute.local_name[0:1].upper() + attribute.local_name[1:] -%}
-    {%- if attribute.type != "object" -%}
+    {%- if attribute.type != "object" %}
     d.Set("{{ attribute.local_name|lower }}{{ "_" if attribute.local_name.lower() in ["connection", "count", "depends_on", "id", "lifecycle", "provider", "provisioner"] }}", o.{{ field_name }})
-    {%- else -%}
+    {%- else %}
     if v, ok := o.{{ field_name }}.(string); ok {
 		raw := make(map[string]string)
 		raw["raw"] = v
@@ -198,7 +206,7 @@ func resource{{specification.entity_name}}Read(d *schema.ResourceData, m interfa
 		d.Set("{{ attribute.local_name|lower }}{{ "_" if attribute.local_name.lower() in ["connection", "count", "depends_on", "id", "lifecycle", "provider", "provisioner"] }}", o.{{ field_name }})
 	}
     {%- endif %}
-    {% endfor %}
+    {%- endfor %}
     d.Set("id", o.Identifier())
     d.Set("parent_id", o.ParentID)
     d.Set("parent_type", o.ParentType)
@@ -211,18 +219,18 @@ func resource{{specification.entity_name}}Update(d *schema.ResourceData, m inter
     o := &vspk.{{specification.entity_name}}{
         ID: d.Id(),
     }
-    
+
     err := o.Fetch()
     if err != nil {
         return err
     }
-    {% for attribute in specification.attributes -%}
+    {%- for attribute in specification.attributes %}
     {%- set field_name = attribute.local_name[0:1].upper() + attribute.local_name[1:] -%}
     {%- if attribute.required %}
     o.{{ field_name }} = d.Get("{{ attribute.local_name|lower }}{{ "_" if attribute.local_name.lower() in ["connection", "count", "depends_on", "id", "lifecycle", "provider", "provisioner"] }}").({{ attribute.local_type }})
     {%- endif %}
     {%- endfor %}
-    {% for attribute in specification.attributes %}
+    {%- for attribute in specification.attributes %}
     {%- set field_name = attribute.local_name[0:1].upper() + attribute.local_name[1:] -%}
     {%- if not attribute.required and not attribute.autogenerated and not attribute.read_only %}
     if attr, ok := d.GetOk("{{ attribute.local_name|lower }}{{ "_" if attribute.local_name.lower() in ["connection", "count", "depends_on", "id", "lifecycle", "provider", "provisioner"] }}"); ok {

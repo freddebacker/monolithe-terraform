@@ -89,7 +89,7 @@ func dataSource{{specification.entity_name}}Read(d *schema.ResourceData, m inter
     err := &bambou.Error{}
     {%- endif %}
     fetchFilter := &bambou.FetchingInfo{}
-    
+ 
     filters, filtersOk := d.GetOk("filter")
     if filtersOk {
         fetchFilter = bambou.NewFetchingInfo()
@@ -100,41 +100,35 @@ func dataSource{{specification.entity_name}}Read(d *schema.ResourceData, m inter
             } else {
                 fetchFilter.Filter = fmt.Sprintf("%s %s '%s'", m["key"].(string), m["operator"].(string), m["value"].(string))
             }
-           
         }
     }
 
-    {%- if parent_apis | length == 1 %}
-        {%- if parent_apis[0].remote_spec.instance_name|lower != "me" and parent_apis[0].actions.get %}
-    parent := &vspk.{{ parent_apis[0].remote_spec.entity_name }}{ID: d.Get("parent_{{ parent_apis[0].remote_spec.instance_name|lower }}").(string)}
-    filtered{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}, err = parent.{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}(fetchFilter)
-    if err != nil {
-        return err
-    }
-        {%- else %}
+    {%- if (parent_apis | selectattr('actions.get') | list | length) == 1 %}
+        {%- if parent_apis[0].remote_spec.entity_name | lower == "me" %}
     parent := m.(*vspk.Me)
+        {%- else %}
+    parent := &vspk.{{ parent_apis[0].remote_spec.entity_name }}{ID: d.Get("parent_{{ parent_apis[0].remote_spec.instance_name|lower }}").(string)}
+        {%- endif %}
     filtered{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}, err = parent.{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}(fetchFilter)
     if err != nil {
         return err
     }
-        {%- endif %}
-    {%- else %}
-        {%- for api in (parent_apis | selectattr('remote_spec.instance_name', 'ne', 'me')) %}
-            {%- if api.actions.get %}
-                {%- if loop.first %}
+    {%- elif (parent_apis | selectattr('actions.get') | list | length) > 1 %}
+        {%- for api in parent_apis | selectattr('actions.get') | rejectattr('remote_spec.instance_name', 'in', ['me', 'Me', 'mE', 'ME']) %}
+            {%- if loop.first %}
     if attr, ok := d.GetOk("parent_{{ api.remote_spec.instance_name|lower }}"); ok {
-                {%- else %}
+            {%- else %}
     } else if attr, ok := d.GetOk("parent_{{ api.remote_spec.instance_name|lower }}"); ok {
-                {%- endif %}
+            {%- endif %}
         parent := &vspk.{{ api.remote_spec.entity_name }}{ID: attr.(string)}
         filtered{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}, err = parent.{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}(fetchFilter)
         if err != nil {
             return err
         }
-                {%- if loop.last %}
-                    {%- if (parent_apis | selectattr('remote_spec.instance_name', 'eq', 'me')| list | length) == 0 %}
+            {%- if loop.last %}
+                {%- if (parent_apis | map(attribute='remote_spec.instance_name') | map('lower') | select('equalto', 'me')| list | length) == 0 %}
     }
-                    {%- else %}
+                {%- else %}
     } else {
         parent := m.(*vspk.Me)
         filtered{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}, err = parent.{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}(fetchFilter)
@@ -142,7 +136,6 @@ func dataSource{{specification.entity_name}}Read(d *schema.ResourceData, m inter
             return err
         }
     }
-                    {%- endif %}
                 {%- endif %}
             {%- endif %}
         {%- endfor %}

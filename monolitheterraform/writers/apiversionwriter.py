@@ -120,6 +120,10 @@ class APIVersionWriter(TemplateFileWriter):
             for related_child_api in remote_spec.child_apis:
                 if related_child_api.rest_name == specification.rest_name and related_child_api.allows_create:
                     parent_apis.append({"remote_spec": remote_spec, "actions": self._get_actions(related_child_api), "relationship": related_child_api.relationship})
+
+        if len(parent_apis) == 0:
+            print("%s has no parents for resource creation!" % (specification.entity_name.lower()))
+
         #if specification.rest_name == 'addressrange' :
         #    print(parent_apis[0]['remote_spec'].instance_name)
         self.write(destination=self.output_directory, filename=filename, template_name="resource.go.tpl",
@@ -151,7 +155,10 @@ class APIVersionWriter(TemplateFileWriter):
             for related_child_api in remote_spec.child_apis:
                 if related_child_api.rest_name == specification.rest_name and related_child_api.allows_get:
                     parent_apis.append({"remote_spec": remote_spec, "actions": self._get_actions(related_child_api), "relationship": related_child_api.relationship})
-        
+
+        if len(parent_apis) == 0:
+            print("%s has no parents for datasource retrieval!" % (specification.entity_name.lower()))
+
         self.write(destination=self.output_directory, filename=filename, template_name="data.go.tpl",
                    specification=specification,
                    specification_set=specification_set,
