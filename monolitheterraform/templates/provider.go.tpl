@@ -49,6 +49,7 @@ func Provider() terraform.ResourceProvider {
         DataSourcesMap: map[string]*schema.Resource{
             {%- for specification in specification_set_datasources %}
             "nuagenetworks_{{ specification.instance_name }}": dataSource{{ specification.entity_name }}(),
+            "nuagenetworks_{{ specification.instance_name }}s": dataSource{{ specification.entity_name }}s(),
             {%- endfor %}
         },
         ResourcesMap: map[string]*schema.Resource{

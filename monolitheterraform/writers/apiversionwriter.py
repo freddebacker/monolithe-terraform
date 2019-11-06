@@ -113,7 +113,7 @@ class APIVersionWriter(TemplateFileWriter):
         filename = "resource_nuagenetworks_%s.go" % (specification.entity_name.lower())
         # override_content = self._extract_override_content(specification.entity_name)
         # constants = self._extract_constants(specification)
-        superclass_name = "NURESTRootObject" if specification.rest_name == self.api_root else "NURESTObject"
+        # superclass_name = "NURESTRootObject" if specification.rest_name == self.api_root else "NURESTObject"
 
         parent_apis = []
         for rest_name, remote_spec in specification_set.items():
@@ -134,7 +134,7 @@ class APIVersionWriter(TemplateFileWriter):
                    product_accronym=self._product_accronym,
                    parent_apis=parent_apis,
                 #    override_content=override_content,
-                   superclass_name=superclass_name,
+                #    superclass_name=superclass_name,
                 #    constants=constants,
                    header=self.header_content)
 
@@ -146,9 +146,10 @@ class APIVersionWriter(TemplateFileWriter):
 
         """
         filename = "data_source_nuagenetworks_%s.go" % (specification.entity_name.lower())
+        listfilename = "data_source_nuagenetworks_%ss.go" % (specification.entity_name.lower())
         # override_content = self._extract_override_content(specification.entity_name)
         # constants = self._extract_constants(specification)
-        superclass_name = "NURESTRootObject" if specification.rest_name == self.api_root else "NURESTObject"
+        # superclass_name = "NURESTRootObject" if specification.rest_name == self.api_root else "NURESTObject"
 
         parent_apis = []
         for rest_name, remote_spec in specification_set.items():
@@ -167,11 +168,25 @@ class APIVersionWriter(TemplateFileWriter):
                    product_accronym=self._product_accronym,
                    parent_apis=parent_apis,
                 #    override_content=override_content,
-                   superclass_name=superclass_name,
+                #    superclass_name=superclass_name,
                 #    constants=constants,
                    header=self.header_content)
 
         self.resource_filenames[filename] = specification.entity_name
+
+        self.write(destination=self.output_directory, filename=listfilename, template_name="datalist.go.tpl",
+                   specification=specification,
+                   specification_set=specification_set,
+                   version=self.api_version,
+                   class_prefix=self._class_prefix,
+                   product_accronym=self._product_accronym,
+                   parent_apis=parent_apis,
+                #    override_content=override_content,
+                #    superclass_name=superclass_name,
+                #    constants=constants,
+                   header=self.header_content)
+
+        self.resource_filenames[listfilename] = specification.entity_name
 
     def _write_init_models(self, filenames):
         """ Write provider.go file
