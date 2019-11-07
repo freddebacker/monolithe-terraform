@@ -40,7 +40,28 @@ func dataSource{{ specification.entity_name }}s() *schema.Resource {
     return &schema.Resource{
         Read: dataSource{{specification.entity_name}}sRead,
         Schema: map[string]*schema.Schema{
-            "filter": dataSourceFiltersSchema(),
+            "filter": &schema.Schema{
+                Type:     schema.TypeSet,
+                Optional: true,
+                ForceNew: true,
+                Elem: &schema.Resource{
+                    Schema: map[string]*schema.Schema{
+                        "key": {
+                            Type:     schema.TypeString,
+                            Required: true,
+                        },
+                        "operator": {
+                            Type:     schema.TypeString,
+                            Optional: true,
+                            Default:  "==",
+                        },
+                        "value": {
+                            Type:     schema.TypeString,
+                            Required: true,
+                        },
+                    },
+                },
+            },
             "keys": {
                 Type:     schema.TypeList,
                 Computed: true,
