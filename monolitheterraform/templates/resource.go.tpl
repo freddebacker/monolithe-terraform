@@ -127,8 +127,8 @@ func resource{{ specification.entity_name }}() *schema.Resource {
 
 func resource{{specification.entity_name}}Create(d *schema.ResourceData, m interface{}) error {
 
-    // Initialize {{ specification.entity_name }} object
-    o := &vspk.{{ specification.entity_name }}{
+    // Initialize {{ specification.entity_name[0:1].upper() + specification.entity_name[1:] }} object
+    o := &vspk.{{ specification.entity_name[0:1].upper() + specification.entity_name[1:] }}{
         {%- for attribute in specification.attributes %}
         {%- set field_name = attribute.local_name[0:1].upper() + attribute.local_name[1:] -%}
         {%- if attribute.required %}
@@ -147,7 +147,7 @@ func resource{{specification.entity_name}}Create(d *schema.ResourceData, m inter
     {%- endfor %}
     {%- if (parent_apis | selectattr('actions.create') | selectattr('relationship', 'in', ["child", "root", "alias"]) | list | length) == 1 %}
         {%- if parent_apis[0].remote_spec.instance_name|lower != "me" %}
-    parent := &vspk.{{ parent_apis[0].remote_spec.entity_name }}{ID: d.Get("parent_{{ parent_apis[0].remote_spec.instance_name|lower }}").(string)}
+    parent := &vspk.{{ parent_apis[0].remote_spec.entity_name[0:1].upper() + parent_apis[0].remote_spec.entity_name[1:] }}{ID: d.Get("parent_{{ parent_apis[0].remote_spec.instance_name|lower }}").(string)}
         {%- else %}
     parent := m.(*vspk.Me)
         {%- endif %}
@@ -162,7 +162,7 @@ func resource{{specification.entity_name}}Create(d *schema.ResourceData, m inter
             {%- else %}
     } else if attr, ok := d.GetOk("parent_{{ api.remote_spec.instance_name|lower }}"); ok {
             {%- endif %}
-        parent := &vspk.{{ api.remote_spec.entity_name }}{ID: attr.(string)}
+        parent := &vspk.{{ api.remote_spec.entity_name[0:1].upper() + api.remote_spec.entity_name[1:] }}{ID: attr.(string)}
         err := parent.Create{{specification.entity_name}}(o)
         if err != nil {
             return err
@@ -198,7 +198,7 @@ func resource{{specification.entity_name}}Create(d *schema.ResourceData, m inter
 }
 
 func resource{{specification.entity_name}}Read(d *schema.ResourceData, m interface{}) error {
-    o := &vspk.{{specification.entity_name}}{
+    o := &vspk.{{ specification.entity_name[0:1].upper() + specification.entity_name[1:] }}{
         ID: d.Id(),
     }
 
@@ -232,7 +232,7 @@ func resource{{specification.entity_name}}Read(d *schema.ResourceData, m interfa
 }
 
 func resource{{specification.entity_name}}Update(d *schema.ResourceData, m interface{}) error {
-    o := &vspk.{{specification.entity_name}}{
+    o := &vspk.{{ specification.entity_name[0:1].upper() + specification.entity_name[1:] }}{
         ID: d.Id(),
     }
 
@@ -261,7 +261,7 @@ func resource{{specification.entity_name}}Update(d *schema.ResourceData, m inter
 }
 
 func resource{{specification.entity_name}}Delete(d *schema.ResourceData, m interface{}) error {
-    o := &vspk.{{specification.entity_name}}{
+    o := &vspk.{{ specification.entity_name[0:1].upper() + specification.entity_name[1:] }}{
         ID: d.Id(),
     }
 

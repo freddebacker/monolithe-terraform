@@ -110,7 +110,7 @@ class APIVersionWriter(TemplateFileWriter):
         """ Write autogenerate specification file
 
         """
-        filename = "resource_nuagenetworks_%s.go" % (specification.entity_name.lower())
+        filename = "resource_nuagenetworks_%s%s.go" % (specification.entity_name.lower(), "_" if specification.entity_name.lower() == "test" else "")
         # override_content = self._extract_override_content(specification.entity_name)
         # constants = self._extract_constants(specification)
         # superclass_name = "NURESTRootObject" if specification.rest_name == self.api_root else "NURESTObject"
@@ -145,7 +145,7 @@ class APIVersionWriter(TemplateFileWriter):
         """ Write autogenerate specification file
 
         """
-        filename = "data_source_nuagenetworks_%s.go" % (specification.entity_name.lower())
+        filename = "data_source_nuagenetworks_%s%s.go" % (specification.entity_name.lower(), "_" if specification.entity_name.lower() == "test" else "")
         listfilename = "data_source_nuagenetworks_%ss.go" % (specification.entity_name.lower())
         # override_content = self._extract_override_content(specification.entity_name)
         # constants = self._extract_constants(specification)

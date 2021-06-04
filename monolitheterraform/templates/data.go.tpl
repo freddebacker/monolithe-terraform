@@ -114,7 +114,7 @@ func dataSource{{specification.entity_name}}Read(d *schema.ResourceData, m inter
     var {{specification.entity_name}} *vspk.{{specification.entity_name[0:1].upper() + specification.entity_name[1:]}}
 
     if id, ok := d.GetOk("id"); ok {
-        {{specification.entity_name}} = &vspk.{{specification.entity_name}}{
+        {{specification.entity_name}} = &vspk.{{specification.entity_name[0:1].upper() + specification.entity_name[1:]}}{
             ID: id.(string),
         }
 
@@ -146,7 +146,7 @@ func dataSource{{specification.entity_name}}Read(d *schema.ResourceData, m inter
             {%- if parent_apis[0].remote_spec.entity_name | lower == "me" %}
         parent := m.(*vspk.Me)
             {%- else %}
-        parent := &vspk.{{ parent_apis[0].remote_spec.entity_name }}{ID: d.Get("parent_{{ parent_apis[0].remote_spec.instance_name|lower }}").(string)}
+        parent := &vspk.{{ parent_apis[0].remote_spec.entity_name[0:1].upper() + parent_apis[0].remote_spec.entity_name[1:] }}{ID: d.Get("parent_{{ parent_apis[0].remote_spec.instance_name|lower }}").(string)}
             {%- endif %}
         filtered{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}, err = parent.{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}(fetchFilter)
         if err != nil {
@@ -159,7 +159,7 @@ func dataSource{{specification.entity_name}}Read(d *schema.ResourceData, m inter
             {%- else %}
         } else if attr, ok := d.GetOk("parent_{{ api.remote_spec.instance_name|lower }}"); ok {
                 {%- endif %}
-            parent := &vspk.{{ api.remote_spec.entity_name }}{ID: attr.(string)}
+            parent := &vspk.{{ api.remote_spec.entity_name[0:1].upper() + api.remote_spec.entity_name[1:] }}{ID: attr.(string)}
             filtered{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}, err = parent.{{specification.entity_name_plural[0:1].upper() + specification.entity_name_plural[1:]}}(fetchFilter)
             if err != nil {
                 return err
